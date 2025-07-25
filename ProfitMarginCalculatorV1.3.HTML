@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit Margin Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Hide the default number input arrows */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .record-item {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Adjusted for more columns */
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative; /* Added for checkbox positioning */
+            padding-left: 2.5rem; /* Space for checkbox */
+        }
+        .record-item:last-child {
+            border-bottom: none;
+        }
+        .record-item div {
+            font-size: 0.875rem; /* sm text */
+            color: #4b5563; /* gray-700 */
+            word-break: break-word; /* Ensure long text wraps */
+        }
+        .record-item div strong {
+            color: #1f2937; /* gray-900 */
+        }
+        /* Style for file input */
+        input[type="file"] {
+            display: none; /* Hide default file input */
+        }
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 8px 12px;
+            cursor: pointer;
+            background-color: #e2e8f0; /* gray-200 */
+            color: #334155; /* slate-700 */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.3s ease;
+        }
+        .custom-file-upload:hover {
+            background-color: #cbd5e1; /* gray-300 */
+        }
+        .disabled-input {
+            background-color: #e5e7eb; /* gray-200 */
+            cursor: not-allowed;
+        }
+        .record-checkbox {
+            position: absolute;
+            top: 0.75rem; /* Adjusted top for better alignment */
+            left: 0.75rem; /* Adjusted left for better alignment */
+            z-index: 10;
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            cursor: pointer;
+        }
+
+        /* Styles for the report */
+        .report-container {
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .report-header h1 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .report-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .report-section h2 {
+            font-size: 1.5em;
+            color: #555;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        .report-item strong {
+            color: #333;
+        }
+        .report-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e0f2f7; /* Light blue */
+            border: 1px solid #b2ebf2;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .report-summary p {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .report-summary .profit {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #28a745; /* Green */
+        }
+        .report-summary .margin {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #673ab7; /* Purple */
+        }
+        .report-footer {
+            text-align: right;
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Profit Margin Calculator</h1>
+
+        <!-- Vendor & Trainer Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label for="vendorName" class="block text-sm font-medium text-gray-700 mb-1">Vendor Name</label>
+                <input type="text" id="vendorName" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Tech Solutions Inc.">
+            </div>
+            <div>
+                <label for="trainerName" class="block text-sm font-medium text-gray-700 mb-1">Trainer Name</label>
+                <input type="text" id="trainerName" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., John Doe">
+            </div>
+            <div>
+                <label for="trainingName" class="block text-sm font-medium text-gray-700 mb-1">Training Name</label>
+                <input type="text" id="trainingName" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Advanced JavaScript Workshop">
+            </div>
+        </div>
+
+        <!-- Revenue Generation Details -->
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Revenue Generation Details</h2>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Choose Pricing Model:</label>
+            <div class="flex flex-wrap gap-4">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="pricingModel" value="perParticipant" class="form-radio text-blue-600" checked>
+                    <span class="ml-2 text-gray-700">Per Participant</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="pricingModel" value="perHour" class="form-radio text-blue-600">
+                    <span class="ml-2 text-gray-700">Per Hour</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="pricingModel" value="perDay" class="form-radio text-blue-600">
+                    <span class="ml-2 text-gray-700">Per Day (Assumes 8 hours/day)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label for="numParticipants" class="block text-sm font-medium text-gray-700 mb-1">No. of Participants</label>
+                <input type="number" id="numParticipants" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 10" min="0">
+            </div>
+            <div>
+                <label for="pricePerParticipant" class="block text-sm font-medium text-gray-700 mb-1">Price per Participant (₹)</label>
+                <input type="number" id="pricePerParticipant" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 500" min="0">
+            </div>
+            <div>
+                <label for="totalHours" class="block text-sm font-medium text-gray-700 mb-1">Total No. of Hours of Training</label>
+                <input type="number" id="totalHours" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 40" min="0">
+            </div>
+            <div>
+                <label for="pricePerHour" class="block text-sm font-medium text-gray-700 mb-1">Price per Hour (₹)</label>
+                <input type="number" id="pricePerHour" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled-input" placeholder="e.g., 100" min="0" disabled>
+            </div>
+            <div>
+                <label for="pricePerDay" class="block text-sm font-medium text-gray-700 mb-1">Price per Day (₹)</label>
+                <input type="number" id="pricePerDay" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled-input" placeholder="e.g., 800" min="0" disabled>
+            </div>
+        </div>
+
+        <!-- Expense Details -->
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Expense Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label for="trainerExpensePerParticipant" class="block text-sm font-medium text-gray-700 mb-1">Trainer Expense Per Participant (₹)</label>
+                <input type="number" id="trainerExpensePerParticipant" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 100" min="0">
+            </div>
+            <div>
+                <label for="trainerExpensePerHour" class="block text-sm font-medium text-gray-700 mb-1">Trainer Expense Per Hour (₹)</label>
+                <input type="number" id="trainerExpensePerHour" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled-input" placeholder="e.g., 50" min="0" disabled>
+            </div>
+            <div>
+                <label for="trainerExpensePerDay" class="block text-sm font-medium text-gray-700 mb-1">Trainer Expense Per Day (₹)</label>
+                <input type="number" id="trainerExpensePerDay" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled-input" placeholder="e.g., 400" min="0" disabled>
+            </div>
+            <!-- Other optional costs -->
+            <div>
+                <label for="labsCostPerDay" class="block text-sm font-medium text-gray-700 mb-1">Labs Cost Per Day (₹) <span class="text-gray-500">(Optional)</span></label>
+                <input type="number" id="labsCostPerDay" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 50" min="0">
+            </div>
+            <div>
+                <label for="trainerTravelCost" class="block text-sm font-medium text-gray-700 mb-1">Trainer Travel Cost (₹) <span class="text-gray-500">(Optional)</span></label>
+                <input type="number" id="trainerTravelCost" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 1000" min="0">
+            </div>
+            <div>
+                <label for="trainerAccommodationCostPerDay" class="block text-sm font-medium text-gray-700 mb-1">Trainer Accommodation Cost Per Day (₹) <span class="text-gray-500">(Optional)</span></label>
+                <input type="number" id="trainerAccommodationCostPerDay" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 150" min="0">
+            </div>
+            <div>
+                <label for="coursewareCost" class="block text-sm font-medium text-gray-700 mb-1">Courseware Cost (₹) <span class="text-gray-500">(Optional)</span></label>
+                <input type="number" id="coursewareCost" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 250" min="0">
+            </div>
+        </div>
+
+        <!-- Calculation & Save Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+            <button id="calculateBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Calculate Profit
+            </button>
+            <button id="saveBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105" disabled>
+                Save Record
+            </button>
+        </div>
+
+        <!-- Results Display -->
+        <div id="results" class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200 hidden">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4">Current Calculation</h2>
+            <p class="text-gray-700 mb-2"><strong>Vendor:</strong> <span id="displayVendorName"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Trainer:</strong> <span id="displayTrainerName"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Training Name:</strong> <span id="displayTrainingName"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Revenue Model:</strong> <span id="displayPricingModel"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowNumParticipants"><strong>No. of Participants:</strong> <span id="displayNumParticipants"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTotalHours"><strong>Total Hours:</strong> <span id="displayTotalHours"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowPricePerParticipant"><strong>Price per Participant:</strong> ₹<span id="displayPricePerParticipant"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowPricePerHour"><strong>Price per Hour:</strong> ₹<span id="displayPricePerHour"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowPricePerDay"><strong>Price per Day:</strong> ₹<span id="displayPricePerDay"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Calculated Client Budget:</strong> ₹<span id="displayClientBudget"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Trainer Expense Model:</strong> <span id="displayTrainerExpenseModel"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTrainerExpensePerParticipant"><strong>Trainer Expense Per Participant:</strong> ₹<span id="displayTrainerExpensePerParticipant"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTrainerExpensePerHour"><strong>Trainer Expense Per Hour:</strong> ₹<span id="displayTrainerExpensePerHour"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTrainerExpensePerDay"><strong>Trainer Expense Per Day:</strong> ₹<span id="displayTrainerExpensePerDay"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Total Trainer Expense:</strong> ₹<span id="displayTotalTrainerExpense"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowLabsCostPerDay"><strong>Labs Cost Per Day:</strong> ₹<span id="displayLabsCostPerDay"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTotalLabsCost"><strong>Total Labs Cost:</strong> ₹<span id="displayLabsCost"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Trainer Travel Cost:</strong> ₹<span id="displayTrainerTravelCost"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTrainerAccommodationCostPerDay"><strong>Trainer Accommodation Cost Per Day:</strong> ₹<span id="displayTrainerAccommodationCostPerDay"></span></p>
+            <p class="text-gray-700 mb-2" id="displayRowTotalTrainerAccommodationCost"><strong>Total Trainer Accommodation Cost:</strong> ₹<span id="displayTotalTrainerAccommodationCost"></span></p>
+            <p class="text-gray-700 mb-2"><strong>Courseware Cost:</strong> ₹<span id="displayCoursewareCost"></span></p>
+            <p class="text-lg font-bold text-green-700 mt-4">
+                <strong>Gross Profit:</strong> ₹<span id="displayGrossProfit"></span>
+            </p>
+            <p class="text-lg font-bold text-purple-700">
+                <strong>Profit Margin:</strong> <span id="displayProfitMargin"></span>%
+            </p>
+        </div>
+
+        <!-- Message Box for Errors/Info -->
+        <div id="messageBox" class="mt-4 p-3 rounded-md text-sm text-center hidden" role="alert"></div>
+    </div>
+
+    <!-- Saved Records Section -->
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Saved Records</h2>
+
+        <!-- Export/Import Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-6 justify-center">
+            <button id="exportCsvBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Export All as CSV
+            </button>
+            <button id="exportJsonBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Export All as JSON
+            </button>
+            <button id="exportHtmlReportBtn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105" disabled>
+                Export Current as HTML Report
+            </button>
+            <button id="exportSelectedHtmlReportBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105" disabled>
+                Export Selected as HTML Report
+            </button>
+            <label for="importFile" class="custom-file-upload flex items-center justify-center cursor-pointer hover:bg-gray-300 transition duration-300 ease-in-out transform hover:scale-105">
+                Import from File
+                <input type="file" id="importFile" accept=".csv, .json">
+            </label>
+        </div>
+
+        <div id="recordsList" class="space-y-4">
+            <!-- Records will be loaded here -->
+            <p class="text-gray-500 text-center" id="noRecordsMessage">No records yet. Calculate and save to see them here!</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to HTML elements
+            const vendorNameInput = document.getElementById('vendorName');
+            const trainerNameInput = document.getElementById('trainerName');
+            const trainingNameInput = document.getElementById('trainingName');
+
+            // Revenue Inputs
+            const pricingModelRadios = document.querySelectorAll('input[name="pricingModel"]');
+            const numParticipantsInput = document.getElementById('numParticipants');
+            const totalHoursInput = document.getElementById('totalHours');
+            const pricePerParticipantInput = document.getElementById('pricePerParticipant');
+            const pricePerHourInput = document.getElementById('pricePerHour');
+            const pricePerDayInput = document.getElementById('pricePerDay');
+
+            // Expense Inputs (now directly linked to revenue model)
+            const trainerExpensePerParticipantInput = document.getElementById('trainerExpensePerParticipant');
+            const trainerExpensePerHourInput = document.getElementById('trainerExpensePerHour');
+            const trainerExpensePerDayInput = document.getElementById('trainerExpensePerDay');
+
+            const labsCostPerDayInput = document.getElementById('labsCostPerDay'); // Changed to per day input
+            const trainerTravelCostInput = document.getElementById('trainerTravelCost');
+            const trainerAccommodationCostPerDayInput = document.getElementById('trainerAccommodationCostPerDay'); // Changed to per day input
+            const coursewareCostInput = document.getElementById('coursewareCost');
+
+            const calculateBtn = document.getElementById('calculateBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const resultsDiv = document.getElementById('results');
+            const messageBox = document.getElementById('messageBox');
+            const recordsList = document.getElementById('recordsList');
+            const noRecordsMessage = document.getElementById('noRecordsMessage');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const exportJsonBtn = document.getElementById('exportJsonBtn');
+            const exportHtmlReportBtn = document.getElementById('exportHtmlReportBtn');
+            const exportSelectedHtmlReportBtn = document.getElementById('exportSelectedHtmlReportBtn'); // New button
+            const importFileInput = document.getElementById('importFile');
+
+            // Display elements for results (targeting parent <p> for hiding/showing)
+            const displayVendorName = document.getElementById('displayVendorName');
+            const displayTrainerName = document.getElementById('displayTrainerName');
+            const displayTrainingName = document.getElementById('displayTrainingName');
+            const displayPricingModel = document.getElementById('displayPricingModel');
+            const displayNumParticipants = document.getElementById('displayNumParticipants');
+            const displayTotalHours = document.getElementById('displayTotalHours');
+            const displayPricePerParticipant = document.getElementById('displayPricePerParticipant');
+            const displayPricePerHour = document.getElementById('displayPricePerHour');
+            const displayPricePerDay = document.getElementById('displayPricePerDay');
+            const displayClientBudget = document.getElementById('displayClientBudget');
+            const displayTrainerExpenseModel = document.getElementById('displayTrainerExpenseModel');
+            const displayTrainerExpensePerParticipant = document.getElementById('displayTrainerExpensePerParticipant');
+            const displayTrainerExpensePerHour = document.getElementById('displayTrainerExpensePerHour');
+            const displayTrainerExpensePerDay = document.getElementById('displayTrainerExpensePerDay');
+            const displayTotalTrainerExpense = document.getElementById('displayTotalTrainerExpense');
+            const displayLabsCost = document.getElementById('displayLabsCost'); // This will show total labs cost
+            const displayTrainerTravelCost = document.getElementById('displayTrainerTravelCost');
+            const displayTrainerAccommodationCostPerDay = document.getElementById('displayTrainerAccommodationCostPerDay'); // New display for per day
+            const displayTotalTrainerAccommodationCost = document.getElementById('displayTotalTrainerAccommodationCost'); // New display for total
+            const displayCoursewareCost = document.getElementById('displayCoursewareCost');
+            const displayGrossProfit = document.getElementById('displayGrossProfit');
+            const displayProfitMargin = document.getElementById('displayProfitMargin');
+
+            // Parent <p> elements for conditional display in results
+            const displayRowNumParticipants = document.getElementById('displayRowNumParticipants');
+            const displayRowTotalHours = document.getElementById('displayRowTotalHours');
+            const displayRowPricePerParticipant = document.getElementById('displayRowPricePerParticipant');
+            const displayRowPricePerHour = document.getElementById('displayRowPricePerHour');
+            const displayRowPricePerDay = document.getElementById('displayRowPricePerDay');
+            const displayRowTrainerExpensePerParticipant = document.getElementById('displayRowTrainerExpensePerParticipant');
+            const displayRowTrainerExpensePerHour = document.getElementById('displayRowTrainerExpensePerHour');
+            const displayRowTrainerExpensePerDay = document.getElementById('displayRowTrainerExpensePerDay');
+            const displayRowLabsCostPerDay = document.getElementById('displayRowLabsCostPerDay'); // New for labs per day
+            const displayRowTotalLabsCost = document.getElementById('displayRowTotalLabsCost'); // New for total labs cost
+            const displayRowTrainerAccommodationCostPerDay = document.getElementById('displayRowTrainerAccommodationCostPerDay'); // New for accommodation per day
+            const displayRowTotalTrainerAccommodationCost = document.getElementById('displayRowTotalTrainerAccommodationCost'); // New for total accommodation cost
+
+
+            let currentRecordData = null; // To store the latest calculated data for saving
+            let allRecords = []; // Array to hold all records loaded from local storage
+            let editingRecordIndex = null; // New: To track which record is being edited
+
+            const LOCAL_STORAGE_KEY = 'profitMarginRecords';
+            const HOURS_PER_DAY = 8; // Assumption for "Price per Day" calculation
+
+            // Function to display messages (errors or info)
+            function showMessage(message, type = 'info') {
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+                if (type === 'error') {
+                    messageBox.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'success') {
+                    messageBox.classList.add('bg-green-100', 'text-green-700');
+                } else { // info
+                    messageBox.classList.add('bg-blue-100', 'text-blue-700');
+                }
+                messageBox.classList.remove('hidden');
+            }
+
+            // Function to hide messages
+            function hideMessage() {
+                messageBox.classList.add('hidden');
+            }
+
+            // Function to update the state of the "Export Selected" button
+            function updateExportSelectedButtonState() {
+                const checkedCheckboxes = document.querySelectorAll('.record-checkbox:checked');
+                exportSelectedHtmlReportBtn.disabled = checkedCheckboxes.length === 0;
+            }
+
+            // Function to load records from local storage
+            function loadRecords() {
+                try {
+                    const storedRecords = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    allRecords = storedRecords ? JSON.parse(storedRecords) : [];
+                    renderRecords();
+                } catch (e) {
+                    console.error("Error loading records from local storage:", e);
+                    showMessage("Error loading previous records.", "error");
+                    allRecords = []; // Reset if corrupted
+                    renderRecords();
+                }
+            }
+
+            // Function to save records to local storage
+            function saveRecords() {
+                try {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allRecords));
+                    renderRecords();
+                } catch (e) {
+                    console.error("Error saving records to local storage:", e);
+                    showMessage("Error saving record.", "error");
+                }
+            }
+
+            // Function to render records in the list
+            function renderRecords() {
+                recordsList.innerHTML = ''; // Clear existing records
+                if (allRecords.length === 0) {
+                    noRecordsMessage.classList.remove('hidden');
+                } else {
+                    noRecordsMessage.classList.add('hidden');
+                    allRecords.forEach((record, index) => {
+                        const recordItem = document.createElement('div');
+                        recordItem.className = 'record-item bg-gray-50 rounded-md shadow-sm border border-gray-200';
+                        recordItem.innerHTML = `
+                            <input type="checkbox" class="record-checkbox" data-index="${index}">
+                            <div><strong>Vendor:</strong> ${record.vendorName}</div>
+                            <div><strong>Trainer:</strong> ${record.trainerName}</div>
+                            <div><strong>Training:</strong> ${record.trainingName || 'N/A'}</div>
+                            <div><strong>Revenue Model:</strong> ${record.pricingModel || 'N/A'}</div>
+                            <div><strong>Budget:</strong> ₹${record.clientBudget.toFixed(2)}</div>
+                            <div><strong>Trainer Exp Model:</strong> ${record.expensePricingModel || 'N/A'}</div>
+                            <div><strong>Total Trainer Exp:</strong> ₹${record.trainerExpense.toFixed(2)}</div>
+                            <div><strong>Labs Cost:</strong> ₹${record.labsCost.toFixed(2)}</div>
+                            <div><strong>Travel Cost:</strong> ₹${record.trainerTravelCost.toFixed(2)}</div>
+                            <div><strong>Accom. Cost:</strong> ₹${record.totalTrainerAccommodationCost !== undefined ? record.totalTrainerAccommodationCost.toFixed(2) : 'N/A'}</div>
+                            <div><strong>Courseware Cost:</strong> ₹${record.coursewareCost.toFixed(2)}</div>
+                            <div><strong>Gross Profit:</strong> ₹${record.grossProfit.toFixed(2)}</div>
+                            <div><strong>Profit Margin:</strong> ${record.profitMargin.toFixed(2)}%</div>
+                            <div class="col-span-full text-right text-xs text-gray-400">Saved: ${new Date(record.timestamp).toLocaleString()}</div>
+                            <button class="edit-record-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md shadow-sm transition duration-300 ease-in-out text-xs absolute right-2 top-2" data-index="${index}">Edit</button>
+                        `;
+                        recordsList.appendChild(recordItem);
+                    });
+                    // Add event listeners to newly rendered checkboxes
+                    document.querySelectorAll('.record-checkbox').forEach(checkbox => {
+                        checkbox.addEventListener('change', updateExportSelectedButtonState);
+                    });
+                    // Add event listeners to newly rendered edit buttons
+                    document.querySelectorAll('.edit-record-btn').forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            const indexToEdit = parseInt(event.target.dataset.index);
+                            loadRecordForEditing(indexToEdit);
+                        });
+                    });
+                }
+                updateExportSelectedButtonState(); // Initial state update
+            }
+
+            // Function to load a record's data into the main form for editing
+            function loadRecordForEditing(index) {
+                const record = allRecords[index];
+                if (!record) {
+                    showMessage('Record not found for editing.', 'error');
+                    return;
+                }
+
+                // Set editing index
+                editingRecordIndex = index;
+
+                // Populate general details
+                vendorNameInput.value = record.vendorName;
+                trainerNameInput.value = record.trainerName;
+                trainingNameInput.value = record.trainingName;
+                totalHoursInput.value = record.totalHours; // Always mandatory
+
+                // Set revenue model radio button and populate relevant fields
+                pricingModelRadios.forEach(radio => {
+                    if (radio.value === record.pricingModel) {
+                        radio.checked = true;
+                    }
+                });
+                // Call updatePricingInputs to enable/disable correctly without clearing values
+                // We'll manually set values after this, then re-disable if needed.
+                updatePricingInputs(true); // Pass true to indicate loading for edit, don't clear inputs initially
+
+                if (record.pricingModel === 'perParticipant') {
+                    numParticipantsInput.value = record.numParticipants;
+                    pricePerParticipantInput.value = record.pricePerParticipant;
+                } else if (record.pricingModel === 'perHour') {
+                    pricePerHourInput.value = record.pricePerHour;
+                } else if (record.pricingModel === 'perDay') {
+                    pricePerDayInput.value = record.pricePerDay;
+                }
+
+                // Populate expense fields based on the determined expense model
+                if (record.expensePricingModel === 'Per Participant') {
+                    trainerExpensePerParticipantInput.value = record.trainerExpensePerParticipant;
+                } else if (record.expensePricingModel === 'Per Hour') {
+                    trainerExpensePerHourInput.value = record.trainerExpensePerHour;
+                } else if (record.expensePricingModel === 'Per Day') {
+                    trainerExpensePerDayInput.value = record.trainerExpensePerDay;
+                }
+
+                // Populate other optional costs
+                labsCostPerDayInput.value = record.labsCostPerDay;
+                trainerTravelCostInput.value = record.trainerTravelCost;
+                trainerAccommodationCostPerDayInput.value = record.trainerAccommodationCostPerDay;
+                coursewareCostInput.value = record.coursewareCost;
+
+                // Hide results and enable save button
+                resultsDiv.classList.add('hidden');
+                saveBtn.disabled = false;
+                exportHtmlReportBtn.disabled = true; // Disable current report as it's not yet recalculated
+                showMessage('Record loaded for editing. Make your changes and click "Calculate Profit" to update.', 'info');
+            }
+
+
+            // Function to enable/disable input fields and clear values based on pricing model selection (Revenue & Linked Expense)
+            // Added a parameter `isEditing` to prevent clearing values when loading for edit.
+            function updatePricingInputs(isEditing = false) {
+                const selectedModel = document.querySelector('input[name="pricingModel"]:checked').value;
+
+                // Only clear if not editing
+                if (!isEditing) {
+                    numParticipantsInput.value = '';
+                    pricePerParticipantInput.value = '';
+                    pricePerHourInput.value = '';
+                    pricePerDayInput.value = '';
+                    trainerExpensePerParticipantInput.value = '';
+                    trainerExpensePerHourInput.value = '';
+                    trainerExpensePerDayInput.value = '';
+                }
+
+                // Disable all revenue-related inputs first
+                numParticipantsInput.disabled = true;
+                numParticipantsInput.classList.add('disabled-input');
+
+                pricePerParticipantInput.disabled = true;
+                pricePerParticipantInput.classList.add('disabled-input');
+
+                pricePerHourInput.disabled = true;
+                pricePerHourInput.classList.add('disabled-input');
+
+                pricePerDayInput.disabled = true;
+                pricePerDayInput.classList.add('disabled-input');
+
+                // Disable all trainer expense rate inputs
+                trainerExpensePerParticipantInput.disabled = true;
+                trainerExpensePerParticipantInput.classList.add('disabled-input');
+
+                trainerExpensePerHourInput.disabled = true;
+                trainerExpensePerHourInput.classList.add('disabled-input');
+
+                trainerExpensePerDayInput.disabled = true;
+                trainerExpensePerDayInput.classList.add('disabled-input');
+
+                // Enable relevant revenue inputs and their corresponding expense inputs
+                if (selectedModel === 'perParticipant') {
+                    numParticipantsInput.disabled = false;
+                    numParticipantsInput.classList.remove('disabled-input');
+                    pricePerParticipantInput.disabled = false;
+                    pricePerParticipantInput.classList.remove('disabled-input');
+
+                    trainerExpensePerParticipantInput.disabled = false;
+                    trainerExpensePerParticipantInput.classList.remove('disabled-input');
+
+                } else if (selectedModel === 'perHour') {
+                    pricePerHourInput.disabled = false;
+                    pricePerHourInput.classList.remove('disabled-input');
+
+                    trainerExpensePerHourInput.disabled = false;
+                    trainerExpensePerHourInput.classList.remove('disabled-input');
+
+                } else if (selectedModel === 'perDay') {
+                    pricePerDayInput.disabled = false;
+                    pricePerDayInput.classList.remove('disabled-input');
+
+                    trainerExpensePerDayInput.disabled = false;
+                    trainerExpensePerDayInput.classList.remove('disabled-input');
+                }
+            }
+
+            // Add event listeners to pricing model radios
+            pricingModelRadios.forEach(radio => {
+                radio.addEventListener('change', () => updatePricingInputs(false)); // Pass false for user-initiated changes
+            });
+
+            // Event listener for the calculate button
+            calculateBtn.addEventListener('click', () => {
+                hideMessage(); // Clear previous messages
+                saveBtn.disabled = true; // Disable save button until new calculation is valid
+                exportHtmlReportBtn.disabled = true; // Disable report button until new calculation is valid
+
+                // Get core input values
+                const vendorName = vendorNameInput.value.trim();
+                const trainerName = trainerNameInput.value.trim();
+                const trainingName = trainingNameInput.value.trim();
+
+                // Input validation for core fields
+                if (!vendorName) {
+                    showMessage('Please enter the Vendor Name.', 'error');
+                    return;
+                }
+                if (!trainerName) {
+                    showMessage('Please enter the Trainer Name.', 'error');
+                    return;
+                }
+                if (!trainingName) {
+                    showMessage('Please enter the Training Name.', 'error');
+                    return;
+                }
+
+                // Total Hours is now always mandatory
+                const totalHours = parseFloat(totalHoursInput.value);
+                if (isNaN(totalHours) || totalHours <= 0) {
+                    showMessage('Total No. of Hours of Training must be a valid positive number.', 'error');
+                    return;
+                }
+
+                // --- Revenue Calculation ---
+                const selectedPricingModel = document.querySelector('input[name="pricingModel"]:checked').value;
+                let clientBudget = 0;
+                let numParticipants = parseFloat(numParticipantsInput.value) || 0;
+                let pricePerParticipant = parseFloat(pricePerParticipantInput.value) || 0;
+                let pricePerHour = parseFloat(pricePerHourInput.value) || 0;
+                let pricePerDay = parseFloat(pricePerDayInput.value) || 0;
+
+                if (selectedPricingModel === 'perParticipant') {
+                    if (isNaN(numParticipants) || numParticipants < 0 || isNaN(pricePerParticipant) || pricePerParticipant < 0) {
+                        showMessage('Please enter valid No. of Participants and Price per Participant.', 'error');
+                        return;
+                    }
+                    clientBudget = numParticipants * pricePerParticipant;
+                } else if (selectedPricingModel === 'perHour') {
+                    if (isNaN(pricePerHour) || pricePerHour < 0) {
+                        showMessage('Please enter a valid Price per Hour.', 'error');
+                        return;
+                    }
+                    clientBudget = totalHours * pricePerHour;
+                } else if (selectedPricingModel === 'perDay') {
+                    if (isNaN(pricePerDay) || pricePerDay < 0) {
+                        showMessage('Please enter a valid Price per Day.', 'error');
+                        return;
+                    }
+                    const numDays = totalHours / HOURS_PER_DAY;
+                    clientBudget = numDays * pricePerDay;
+                }
+
+                if (isNaN(clientBudget) || clientBudget < 0) {
+                    showMessage('Client Budget calculation resulted in an invalid number. Please check your revenue inputs.', 'error');
+                    return;
+                }
+
+                // --- Trainer Expense Calculation (now dependent on revenue model) ---
+                let totalTrainerExpense = 0;
+                let trainerExpensePerParticipant = parseFloat(trainerExpensePerParticipantInput.value) || 0;
+                let trainerExpensePerHour = parseFloat(trainerExpensePerHourInput.value) || 0;
+                let trainerExpensePerDay = parseFloat(trainerExpensePerDayInput.value) || 0;
+
+                // The expense model is implicitly tied to the revenue model
+                let expensePricingModelDisplay = ''; // To store for display and record
+
+                if (selectedPricingModel === 'perParticipant') {
+                    expensePricingModelDisplay = 'Per Participant';
+                    if (isNaN(trainerExpensePerParticipant) || trainerExpensePerParticipant < 0) {
+                        showMessage('Please enter a valid Trainer Expense Per Participant.', 'error');
+                        return;
+                    }
+                    totalTrainerExpense = numParticipants * trainerExpensePerParticipant;
+                } else if (selectedPricingModel === 'perHour') {
+                    expensePricingModelDisplay = 'Per Hour';
+                    if (isNaN(trainerExpensePerHour) || trainerExpensePerHour < 0) {
+                        showMessage('Please enter a valid Trainer Expense Per Hour.', 'error');
+                        return;
+                    }
+                    totalTrainerExpense = totalHours * trainerExpensePerHour;
+                } else if (selectedPricingModel === 'perDay') {
+                    expensePricingModelDisplay = 'Per Day';
+                    if (isNaN(trainerExpensePerDay) || trainerExpensePerDay < 0) {
+                        showMessage('Please enter a valid Trainer Expense Per Day.', 'error');
+                        return;
+                    }
+                    const trainerNumDays = totalHours / HOURS_PER_DAY;
+                    totalTrainerExpense = trainerNumDays * trainerExpensePerDay;
+                }
+
+                if (isNaN(totalTrainerExpense) || totalTrainerExpense < 0) {
+                    showMessage('Trainer Expense calculation resulted in an invalid number. Please check your trainer expense inputs.', 'error');
+                    return;
+                }
+
+                // --- Labs Cost Calculation (always per day) ---
+                const labsCostPerDay = parseFloat(labsCostPerDayInput.value) || 0;
+                if (isNaN(labsCostPerDay) || labsCostPerDay < 0) {
+                     showMessage('Please enter a valid Labs Cost Per Day.', 'error');
+                     return;
+                }
+                const totalLabsCost = (totalHours / HOURS_PER_DAY) * labsCostPerDay;
+
+                // --- Trainer Accommodation Cost Calculation (always per day) ---
+                const trainerAccommodationCostPerDay = parseFloat(trainerAccommodationCostPerDayInput.value) || 0;
+                if (isNaN(trainerAccommodationCostPerDay) || trainerAccommodationCostPerDay < 0) {
+                     showMessage('Please enter a valid Trainer Accommodation Cost Per Day.', 'error');
+                     return;
+                }
+                const totalTrainerAccommodationCost = (totalHours / HOURS_PER_DAY) * trainerAccommodationCostPerDay;
+
+
+                // Get other optional expense values (default to 0 if empty or invalid)
+                const trainerTravelCost = parseFloat(trainerTravelCostInput.value) || 0;
+                const coursewareCost = parseFloat(coursewareCostInput.value) || 0;
+
+                // Calculate Gross Profit (using totalTrainerExpense, totalLabsCost, and totalTrainerAccommodationCost)
+                const grossProfit = clientBudget - totalTrainerExpense - totalLabsCost - trainerTravelCost - totalTrainerAccommodationCost - coursewareCost;
+
+                // Calculate Profit Margin
+                let profitMargin = 0;
+                if (clientBudget > 0) {
+                    profitMargin = (grossProfit / clientBudget) * 100;
+                } else {
+                    profitMargin = 0; // If client budget is 0, profit margin is 0
+                }
+
+                // Store current calculation data
+                currentRecordData = {
+                    vendorName,
+                    trainerName,
+                    trainingName,
+                    pricingModel: selectedPricingModel,
+                    numParticipants,
+                    totalHours,
+                    pricePerParticipant,
+                    pricePerHour,
+                    pricePerDay,
+                    clientBudget, // This will be the final calculated/entered client budget
+                    expensePricingModel: expensePricingModelDisplay, // Store the determined expense model
+                    trainerExpensePerParticipant,
+                    trainerExpensePerHour,
+                    trainerExpensePerDay,
+                    trainerExpense: totalTrainerExpense, // Store the calculated total trainer expense
+                    labsCostPerDay, // Store per day rate for labs
+                    labsCost: totalLabsCost, // Store the calculated total labs cost
+                    trainerTravelCost,
+                    trainerAccommodationCostPerDay, // Store per day rate for accommodation
+                    totalTrainerAccommodationCost, // Store the calculated total accommodation cost
+                    coursewareCost,
+                    grossProfit,
+                    profitMargin,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Display results
+                displayVendorName.textContent = vendorName;
+                displayTrainerName.textContent = trainerName;
+                displayTrainingName.textContent = trainingName;
+                displayPricingModel.textContent = selectedPricingModel.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+                // Conditionally display revenue inputs
+                // Hide all revenue-specific display elements initially
+                displayRowNumParticipants.style.display = 'none';
+                displayRowTotalHours.style.display = 'none';
+                displayRowPricePerParticipant.style.display = 'none';
+                displayRowPricePerHour.style.display = 'none';
+                displayRowPricePerDay.style.display = 'none';
+
+                if (selectedPricingModel === 'perParticipant') {
+                    displayRowNumParticipants.style.display = 'block';
+                    displayNumParticipants.textContent = numParticipants.toFixed(0);
+                    displayRowPricePerParticipant.style.display = 'block';
+                    displayPricePerParticipant.textContent = pricePerParticipant.toFixed(2);
+                } else if (selectedPricingModel === 'perHour') {
+                    displayRowTotalHours.style.display = 'block';
+                    displayTotalHours.textContent = totalHours.toFixed(0);
+                    displayRowPricePerHour.style.display = 'block';
+                    displayPricePerHour.textContent = pricePerHour.toFixed(2);
+                } else if (selectedPricingModel === 'perDay') {
+                    displayRowTotalHours.style.display = 'block';
+                    displayTotalHours.textContent = totalHours.toFixed(0);
+                    displayRowPricePerDay.style.display = 'block';
+                    displayPricePerDay.textContent = pricePerDay.toFixed(2);
+                }
+
+                displayClientBudget.textContent = clientBudget.toFixed(2);
+
+                displayTrainerExpenseModel.textContent = expensePricingModelDisplay;
+
+                // Conditionally display trainer expense rate inputs
+                displayRowTrainerExpensePerParticipant.style.display = 'none';
+                displayRowTrainerExpensePerHour.style.display = 'none';
+                displayRowTrainerExpensePerDay.style.display = 'none';
+
+                if (selectedPricingModel === 'perParticipant') {
+                    displayRowTrainerExpensePerParticipant.style.display = 'block';
+                    displayTrainerExpensePerParticipant.textContent = trainerExpensePerParticipant.toFixed(2);
+                } else if (selectedPricingModel === 'perHour') {
+                    displayRowTrainerExpensePerHour.style.display = 'block';
+                    displayTrainerExpensePerHour.textContent = trainerExpensePerHour.toFixed(2);
+                } else if (selectedPricingModel === 'perDay') {
+                    displayRowTrainerExpensePerDay.style.display = 'block';
+                    displayTrainerExpensePerDay.textContent = trainerExpensePerDay.toFixed(2);
+                }
+
+                displayTotalTrainerExpense.textContent = totalTrainerExpense.toFixed(2);
+
+                displayRowLabsCostPerDay.style.display = 'block';
+                displayLabsCostPerDay.textContent = labsCostPerDay.toFixed(2);
+                displayRowTotalLabsCost.style.display = 'block';
+                displayLabsCost.textContent = totalLabsCost.toFixed(2);
+
+                displayTrainerTravelCost.textContent = trainerTravelCost.toFixed(2);
+
+                displayRowTrainerAccommodationCostPerDay.style.display = 'block';
+                displayTrainerAccommodationCostPerDay.textContent = trainerAccommodationCostPerDay.toFixed(2);
+                displayRowTotalTrainerAccommodationCost.style.display = 'block';
+                displayTotalTrainerAccommodationCost.textContent = totalTrainerAccommodationCost.toFixed(2);
+
+                displayCoursewareCost.textContent = coursewareCost.toFixed(2);
+                displayGrossProfit.textContent = grossProfit.toFixed(2);
+                displayProfitMargin.textContent = profitMargin.toFixed(2);
+
+                resultsDiv.classList.remove('hidden'); // Show the results section
+                showMessage('Profit calculated successfully! You can now save this record or generate a report.', 'success');
+                saveBtn.disabled = false; // Enable save button
+                exportHtmlReportBtn.disabled = false; // Enable report button
+            });
+
+            // Event listener for the save button
+            saveBtn.addEventListener('click', () => {
+                if (!currentRecordData) {
+                    showMessage('Please calculate profit first before saving.', 'error');
+                    return;
+                }
+
+                if (editingRecordIndex !== null) {
+                    // Update existing record
+                    allRecords[editingRecordIndex] = currentRecordData;
+                    editingRecordIndex = null; // Clear editing state
+                    showMessage('Record updated successfully!', 'success');
+                } else {
+                    // Add new record
+                    allRecords.push(currentRecordData);
+                    showMessage('Record saved successfully!', 'success');
+                }
+                saveRecords();
+                saveBtn.disabled = true; // Disable save button after saving
+                currentRecordData = null; // Clear current data after saving
+            });
+
+            // Function to export data as CSV
+            exportCsvBtn.addEventListener('click', () => {
+                if (allRecords.length === 0) {
+                    showMessage('No records to export.', 'info');
+                    return;
+                }
+
+                const headers = [
+                    "Vendor Name", "Trainer Name", "Training Name", "Revenue Model", "No. of Participants",
+                    "Total Hours", "Price per Participant", "Price per Hour", "Price per Day",
+                    "Calculated Client Budget",
+                    "Trainer Expense Model", "Trainer Expense Per Participant",
+                    "Trainer Expense Per Hour", "Trainer Expense Per Day", "Total Trainer Expense",
+                    "Labs Cost Per Day", "Total Labs Cost",
+                    "Trainer Travel Cost", "Trainer Accommodation Cost Per Day", "Total Trainer Accommodation Cost",
+                    "Courseware Cost",
+                    "Gross Profit", "Profit Margin", "Timestamp"
+                ];
+                const csvRows = [];
+                csvRows.push(headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',')); // Add headers, handle quotes
+
+                allRecords.forEach(record => {
+                    const row = [
+                        `"${record.vendorName.replace(/"/g, '""')}"`,
+                        `"${record.trainerName.replace(/"/g, '""')}"`,
+                        `"${(record.trainingName || 'N/A').replace(/"/g, '""')}"`,
+                        `"${(record.pricingModel || 'N/A').replace(/"/g, '""')}"`,
+                        record.numParticipants !== undefined ? record.numParticipants.toFixed(0) : '',
+                        record.totalHours !== undefined ? record.totalHours.toFixed(0) : '',
+                        record.pricePerParticipant !== undefined ? record.pricePerParticipant.toFixed(2) : '',
+                        record.pricePerHour !== undefined ? record.pricePerHour.toFixed(2) : '',
+                        record.pricePerDay !== undefined ? record.pricePerDay.toFixed(2) : '',
+                        record.clientBudget.toFixed(2),
+                        `"${(record.expensePricingModel || 'N/A').replace(/"/g, '""')}"`,
+                        record.trainerExpensePerParticipant !== undefined ? record.trainerExpensePerParticipant.toFixed(2) : '',
+                        record.trainerExpensePerHour !== undefined ? record.trainerExpensePerHour.toFixed(2) : '',
+                        record.trainerExpensePerDay !== undefined ? record.trainerExpensePerDay.toFixed(2) : '',
+                        record.trainerExpense.toFixed(2),
+                        record.labsCostPerDay !== undefined ? record.labsCostPerDay.toFixed(2) : '',
+                        record.labsCost !== undefined ? record.labsCost.toFixed(2) : '',
+                        record.trainerTravelCost.toFixed(2),
+                        record.trainerAccommodationCostPerDay !== undefined ? record.trainerAccommodationCostPerDay.toFixed(2) : '', // New
+                        record.totalTrainerAccommodationCost !== undefined ? record.totalTrainerAccommodationCost.toFixed(2) : '', // New
+                        record.coursewareCost.toFixed(2),
+                        record.grossProfit.toFixed(2),
+                        record.profitMargin.toFixed(2),
+                        `"${new Date(record.timestamp).toLocaleString().replace(/"/g, '""')}"`
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                const csvString = csvRows.join('\n');
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'profit_records.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showMessage('Records exported as CSV!', 'success');
+            });
+
+            // Function to export data as JSON
+            exportJsonBtn.addEventListener('click', () => {
+                if (allRecords.length === 0) {
+                    showMessage('No records to export.', 'info');
+                    return;
+                }
+
+                const jsonString = JSON.stringify(allRecords, null, 2); // Pretty print JSON
+                const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'profit_records.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showMessage('Records exported as JSON!', 'success');
+            });
+
+            // Helper function to generate HTML for a single record in the report format
+            function generateSingleRecordReportHtml(recordData) {
+                const formattedTimestamp = new Date(recordData.timestamp).toLocaleString();
+                const formattedPricingModel = recordData.pricingModel.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const formattedExpensePricingModel = recordData.expensePricingModel; // Already formatted from calculation
+
+                let revenueDetailsHtml = `
+                    <div class="report-item"><strong>Revenue Model:</strong> <span>${formattedPricingModel}</span></div>
+                `;
+                if (recordData.pricingModel === 'perParticipant') {
+                    revenueDetailsHtml += `
+                        <div class="report-item"><strong>No. of Participants:</strong> <span>${recordData.numParticipants.toFixed(0)}</span></div>
+                        <div class="report-item"><strong>Price per Participant:</strong> <span>₹${recordData.pricePerParticipant.toFixed(2)}</span></div>
+                    `;
+                } else if (recordData.pricingModel === 'perHour') {
+                    revenueDetailsHtml += `
+                        <div class="report-item"><strong>Total Hours of Training:</strong> <span>${recordData.totalHours.toFixed(0)}</span></div>
+                        <div class="report-item"><strong>Price per Hour:</strong> <span>₹${recordData.pricePerHour.toFixed(2)}</span></div>
+                    `;
+                } else if (recordData.pricingModel === 'perDay') {
+                    revenueDetailsHtml += `
+                        <div class="report-item"><strong>Total Hours of Training:</strong> <span>${recordData.totalHours.toFixed(0)}</span></div>
+                        <div class="report-item"><strong>Price per Day:</strong> <span>₹${recordData.pricePerDay.toFixed(2)}</span></div>
+                    `;
+                }
+                revenueDetailsHtml += `<div class="report-item"><strong>Calculated Client Budget:</strong> <span>₹${recordData.clientBudget.toFixed(2)}</span></div>`;
+
+                return `
+                    <div class="report-section">
+                        <h2>Project Details</h2>
+                        <div class="report-item"><strong>Vendor Name:</strong> <span>${recordData.vendorName}</span></div>
+                        <div class="report-item"><strong>Trainer Name:</strong> <span>${recordData.trainerName}</span></div>
+                        <div class="report-item"><strong>Training Name:</strong> <span>${recordData.trainingName}</span></div>
+                        <div class="report-item"><strong>Saved On:</strong> <span>${formattedTimestamp}</span></div>
+                    </div>
+
+                    <div class="report-section">
+                        <h2>Revenue Details</h2>
+                        ${revenueDetailsHtml}
+                    </div>
+
+                    <div class="report-section">
+                        <h2>Expense Details</h2>
+                        <div class="report-item"><strong>Trainer Expense Model:</strong> <span>${formattedExpensePricingModel}</span></div>
+                        ${recordData.pricingModel === 'perParticipant' ? `<div class="report-item"><strong>Trainer Expense Per Participant:</strong> <span>₹${recordData.trainerExpensePerParticipant.toFixed(2)}</span></div>` : ''}
+                        ${recordData.pricingModel === 'perHour' ? `<div class="report-item"><strong>Trainer Expense Per Hour:</strong> <span>₹${recordData.trainerExpensePerHour.toFixed(2)}</span></div>` : ''}
+                        ${recordData.pricingModel === 'perDay' ? `<div class="report-item"><strong>Trainer Expense Per Day:</strong> <span>₹${recordData.trainerExpensePerDay.toFixed(2)}</span></div>` : ''}
+                        <div class="report-item"><strong>Total Trainer Expense:</strong> <span>₹${recordData.trainerExpense.toFixed(2)}</span></div>
+                        <div class="report-item"><strong>Labs Cost Per Day:</strong> <span>₹${recordData.labsCostPerDay.toFixed(2)}</span></div>
+                        <div class="report-item"><strong>Total Labs Cost:</strong> <span>₹${recordData.labsCost.toFixed(2)}</span></div>
+                        <div class="report-item"><strong>Trainer Travel Cost:</strong> <span>₹${recordData.trainerTravelCost.toFixed(2)}</span></div>
+                        <div class="report-item"><strong>Trainer Accommodation Cost Per Day:</strong> <span>₹${recordData.trainerAccommodationCostPerDay.toFixed(2)}</span></div>
+                        <div class="report-item"><strong>Total Trainer Accommodation Cost:</strong> <span>₹${recordData.totalTrainerAccommodationCost.toFixed(2)}</span></div>
+                        <div class="report-item"><strong>Courseware Cost:</strong> <span>₹${recordData.coursewareCost.toFixed(2)}</span></div>
+                    </div>
+
+                    <div class="report-summary">
+                        <p><strong>Gross Profit:</strong> <span class="profit">₹${recordData.grossProfit.toFixed(2)}</span></p>
+                        <p><strong>Profit Margin:</strong> <span class="margin">${recordData.profitMargin.toFixed(2)}%</span></p>
+                    </div>
+                    <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+                `;
+            }
+
+            // Event listener for the "Export Current as HTML Report" button (existing functionality)
+            exportHtmlReportBtn.addEventListener('click', () => {
+                if (!currentRecordData) {
+                    showMessage('Please calculate profit first to generate a report.', 'error');
+                    return;
+                }
+
+                const reportData = currentRecordData;
+                const formattedTimestamp = new Date(reportData.timestamp).toLocaleString();
+                const formattedPricingModel = reportData.pricingModel.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const formattedExpensePricingModel = reportData.expensePricingModel; // Already formatted from calculation
+
+                let revenueDetailsHtml = `
+                    <div class="report-item"><strong>Revenue Model:</strong> <span>${formattedPricingModel}</span></div>
+                `;
+
+                if (reportData.pricingModel === 'perParticipant') {
+                    revenueDetailsHtml += `
+                        <div class="report-item"><strong>No. of Participants:</strong> <span>${reportData.numParticipants.toFixed(0)}</span></div>
+                        <div class="report-item"><strong>Price per Participant:</strong> <span>₹${reportData.pricePerParticipant.toFixed(2)}</span></div>
+                    `;
+                } else if (reportData.pricingModel === 'perHour') {
+                    revenueDetailsHtml += `
+                        <div class="report-item"><strong>Total Hours of Training:</strong> <span>${reportData.totalHours.toFixed(0)}</span></div>
+                        <div class="report-item"><strong>Price per Hour:</strong> <span>₹${reportData.pricePerHour.toFixed(2)}</span></div>
+                    `;
+                } else if (reportData.pricingModel === 'perDay') {
+                    revenueDetailsHtml += `
+                        <div class="report-item"><strong>Total Hours of Training:</strong> <span>${reportData.totalHours.toFixed(0)}</span></div>
+                        <div class="report-item"><strong>Price per Day:</strong> <span>₹${reportData.pricePerDay.toFixed(2)}</span></div>
+                    `;
+                }
+                revenueDetailsHtml += `<div class="report-item"><strong>Calculated Client Budget:</strong> <span>₹${reportData.clientBudget.toFixed(2)}</span></div>`;
+
+
+                const reportContent = `
+                    <div class="report-container">
+                        <div class="report-header">
+                            <h1>Profit Margin Report</h1>
+                            <p>Generated on: ${formattedTimestamp}</p>
+                        </div>
+
+                        <div class="report-section">
+                            <h2>Project Details</h2>
+                            <div class="report-item"><strong>Vendor Name:</strong> <span>${reportData.vendorName}</span></div>
+                            <div class="report-item"><strong>Trainer Name:</strong> <span>${reportData.trainerName}</span></div>
+                            <div class="report-item"><strong>Training Name:</strong> <span>${reportData.trainingName}</span></div>
+                        </div>
+
+                        <div class="report-section">
+                            <h2>Revenue Details</h2>
+                            ${revenueDetailsHtml}
+                        </div>
+
+                        <div class="report-section">
+                            <h2>Expense Details</h2>
+                            <div class="report-item"><strong>Trainer Expense Model:</strong> <span>${formattedExpensePricingModel}</span></div>
+                            ${reportData.pricingModel === 'perParticipant' ? `<div class="report-item"><strong>Trainer Expense Per Participant:</strong> <span>₹${reportData.trainerExpensePerParticipant.toFixed(2)}</span></div>` : ''}
+                            ${reportData.pricingModel === 'perHour' ? `<div class="report-item"><strong>Trainer Expense Per Hour:</strong> <span>₹${reportData.trainerExpensePerHour.toFixed(2)}</span></div>` : ''}
+                            ${reportData.pricingModel === 'perDay' ? `<div class="report-item"><strong>Trainer Expense Per Day:</strong> <span>₹${reportData.trainerExpensePerDay.toFixed(2)}</span></div>` : ''}
+                            <div class="report-item"><strong>Total Trainer Expense:</strong> <span>₹${reportData.trainerExpense.toFixed(2)}</span></div>
+                            <div class="report-item"><strong>Labs Cost Per Day:</strong> <span>₹${reportData.labsCostPerDay.toFixed(2)}</span></div>
+                            <div class="report-item"><strong>Total Labs Cost:</strong> <span>₹${reportData.labsCost.toFixed(2)}</span></div>
+                            <div class="report-item"><strong>Trainer Travel Cost:</strong> <span>₹${reportData.trainerTravelCost.toFixed(2)}</span></div>
+                            <div class="report-item"><strong>Trainer Accommodation Cost Per Day:</strong> <span>₹${reportData.trainerAccommodationCostPerDay.toFixed(2)}</span></div>
+                            <div class="report-item"><strong>Total Trainer Accommodation Cost:</strong> <span>₹${reportData.totalTrainerAccommodationCost.toFixed(2)}</span></div>
+                            <div class="report-item"><strong>Courseware Cost:</strong> <span>₹${reportData.coursewareCost.toFixed(2)}</span></div>
+                        </div>
+
+                        <div class="report-summary">
+                            <p><strong>Gross Profit:</strong> <span class="profit">₹${reportData.grossProfit.toFixed(2)}</span></p>
+                            <p><strong>Profit Margin:</strong> <span class="margin">${reportData.profitMargin.toFixed(2)}%</span></p>
+                        </div>
+
+                        <div class="report-footer">
+                            <p>Profit Margin Calculator Report</p>
+                        </div>
+                    </div>
+                `;
+
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Profit Margin Report - ${reportData.trainingName}</title>
+                        <style>
+                            /* Embed styles directly for self-contained report */
+                            body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background-color: #f3f4f6; }
+                            .report-container {
+                                font-family: 'Inter', sans-serif;
+                                padding: 20px;
+                                max-width: 800px;
+                                margin: 20px auto;
+                                background-color: #fff;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                                border-radius: 8px;
+                            }
+                            .report-header { text-align: center; margin-bottom: 20px; }
+                            .report-header h1 { font-size: 2.2em; color: #333; margin-bottom: 5px; }
+                            .report-header p { font-size: 0.9em; color: #777; }
+                            .report-section {
+                                margin-bottom: 20px;
+                                padding: 15px;
+                                border: 1px solid #eee;
+                                border-radius: 8px;
+                                background-color: #f9f9f9;
+                            }
+                            .report-section h2 {
+                                font-size: 1.6em;
+                                color: #555;
+                                margin-bottom: 10px;
+                                border-bottom: 1px solid #ddd;
+                                padding-bottom: 5px;
+                            }
+                            .report-item {
+                                display: flex;
+                                justify-content: space-between;
+                                padding: 5px 0;
+                                border-bottom: 1px dashed #eee;
+                            }
+                            .report-item:last-child { border-bottom: none; }
+                            .report-item strong { color: #333; }
+                            .report-summary {
+                                margin-top: 30px;
+                                padding: 20px;
+                                background-color: #e0f2f7; /* Light blue */
+                                border: 1px solid #b2ebf2;
+                                border-radius: 8px;
+                                text-align: center;
+                            }
+                            .report-summary p { font-size: 1.3em; margin-bottom: 10px; }
+                            .report-summary .profit { font-size: 2em; font-weight: bold; color: #28a745; }
+                            .report-summary .margin { font-size: 2em; font-weight: bold; color: #673ab7; }
+                            .report-footer { text-align: right; margin-top: 30px; font-size: 0.9em; color: #777; }
+
+                            /* Print specific styles */
+                            @media print {
+                                body { background-color: #fff; }
+                                .report-container { box-shadow: none; border: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${reportContent}
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+                showMessage('HTML Report generated! A new window has opened.', 'success');
+            });
+
+            // Event listener for the new "Export Selected as HTML Report" button
+            exportSelectedHtmlReportBtn.addEventListener('click', () => {
+                const checkedCheckboxes = document.querySelectorAll('.record-checkbox:checked');
+                if (checkedCheckboxes.length === 0) {
+                    showMessage('Please select at least one record to export.', 'error');
+                    return;
+                }
+
+                let combinedReportSections = '';
+                let reportTitle = 'Selected Profit Margin Records Report';
+                let firstTrainingName = '';
+
+                checkedCheckboxes.forEach((checkbox, index) => {
+                    const recordIndex = parseInt(checkbox.dataset.index);
+                    const recordData = allRecords[recordIndex];
+                    if (recordData) {
+                        combinedReportSections += generateSingleRecordReportHtml(recordData);
+                        if (index === 0) { // Take the training name from the first selected record for the title
+                            firstTrainingName = recordData.trainingName;
+                        }
+                    }
+                });
+
+                if (checkedCheckboxes.length === 1 && firstTrainingName) {
+                    reportTitle = `Profit Margin Report - ${firstTrainingName}`;
+                }
+
+                const fullReportHtml = `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${reportTitle}</title>
+                        <style>
+                            /* Embed styles directly for self-contained report */
+                            body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background-color: #f3f4f6; }
+                            .report-container {
+                                font-family: 'Inter', sans-serif;
+                                padding: 20px;
+                                max-width: 800px;
+                                margin: 20px auto;
+                                background-color: #fff;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                                border-radius: 8px;
+                            }
+                            .report-header { text-align: center; margin-bottom: 20px; }
+                            .report-header h1 { font-size: 2.2em; color: #333; margin-bottom: 5px; }
+                            .report-header p { font-size: 0.9em; color: #777; }
+                            .report-section {
+                                margin-bottom: 20px;
+                                padding: 15px;
+                                border: 1px solid #eee;
+                                border-radius: 8px;
+                                background-color: #f9f9f9;
+                            }
+                            .report-section h2 {
+                                font-size: 1.6em;
+                                color: #555;
+                                margin-bottom: 10px;
+                                border-bottom: 1px solid #ddd;
+                                padding-bottom: 5px;
+                            }
+                            .report-item {
+                                display: flex;
+                                justify-content: space-between;
+                                padding: 5px 0;
+                                border-bottom: 1px dashed #eee;
+                            }
+                            .report-item:last-child { border-bottom: none; }
+                            .report-item strong { color: #333; }
+                            .report-summary {
+                                margin-top: 30px;
+                                padding: 20px;
+                                background-color: #e0f2f7; /* Light blue */
+                                border: 1px solid #b2ebf2;
+                                border-radius: 8px;
+                                text-align: center;
+                            }
+                            .report-summary p { font-size: 1.3em; margin-bottom: 10px; }
+                            .report-summary .profit { font-size: 2em; font-weight: bold; color: #28a745; }
+                            .report-summary .margin { font-size: 2em; font-weight: bold; color: #673ab7; }
+                            .report-footer { text-align: right; margin-top: 30px; font-size: 0.9em; color: #777; }
+
+                            /* Print specific styles */
+                            @media print {
+                                body { background-color: #fff; }
+                                .report-container { box-shadow: none; border: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="report-container">
+                            <div class="report-header">
+                                <h1>${reportTitle}</h1>
+                                <p>Generated on: ${new Date().toLocaleString()}</p>
+                            </div>
+                            ${combinedReportSections}
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(fullReportHtml);
+                newWindow.document.close();
+                showMessage('Selected records exported as HTML Report! A new window has opened.', 'success');
+            });
+
+            // Event listener for importing files
+            importFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        let importedData = [];
+                        if (file.type === 'application/json') {
+                            importedData = JSON.parse(e.target.result);
+                        } else if (file.type === 'text/csv') {
+                            importedData = parseCsv(e.target.result);
+                        } else {
+                            showMessage('Unsupported file type. Please upload a CSV or JSON file.', 'error');
+                            return;
+                        }
+
+                        // Basic validation for imported data structure (checking for required fields)
+                        const isValid = importedData.every(record =>
+                            record.vendorName && record.trainerName && record.trainingName &&
+                            typeof record.clientBudget === 'number' &&
+                            typeof record.trainerExpense === 'number' && // This is the calculated total
+                            typeof record.grossProfit === 'number' &&
+                            typeof record.profitMargin === 'number' &&
+                            record.timestamp
+                        );
+
+                        if (!isValid) {
+                            showMessage('Imported file has an invalid format. Please ensure it matches the expected structure.', 'error');
+                            return;
+                        }
+
+                        // Ensure all new fields are present, default to 0 or N/A if missing from older exports
+                        importedData = importedData.map(record => ({
+                            ...record,
+                            expensePricingModel: record.expensePricingModel || 'N/A', // Default to N/A for older records
+                            trainerExpensePerParticipant: record.trainerExpensePerParticipant || 0,
+                            trainerExpensePerHour: record.trainerExpensePerHour || 0,
+                            trainerExpensePerDay: record.trainerExpensePerDay || 0,
+                            numParticipants: record.numParticipants || 0,
+                            totalHours: record.totalHours || 0,
+                            pricePerParticipant: record.pricePerParticipant || 0,
+                            pricePerHour: record.pricePerHour || 0,
+                            pricePerDay: record.pricePerDay || 0,
+                            labsCostPerDay: record.labsCostPerDay || 0, // New default for labsCostPerDay
+                            labsCost: record.labsCost || 0, // Ensure total labsCost is also defaulted
+                            trainerTravelCost: record.trainerTravelCost || 0,
+                            trainerAccommodationCostPerDay: record.trainerAccommodationCostPerDay || 0, // New default
+                            totalTrainerAccommodationCost: record.totalTrainerAccommodationCost || 0, // New default
+                            coursewareCost: record.coursewareCost || 0
+                        }));
+
+                        allRecords = importedData;
+                        saveRecords(); // Save imported records to local storage
+                        showMessage('Records imported successfully!', 'success');
+                    } catch (error) {
+                        console.error("Error processing imported file:", error);
+                        showMessage(`Error importing file: ${error.message}`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            // Helper function to parse CSV string into an array of objects
+            function parseCsv(csvString) {
+                const lines = csvString.split('\n').filter(line => line.trim() !== '');
+                if (lines.length === 0) return [];
+
+                const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                const records = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
+                    const record = {};
+
+                    headers.forEach((header, index) => {
+                        let value = values[index];
+                        const key = header.replace(/\s/g, '');
+                        let formattedKey = key.charAt(0).toLowerCase() + key.slice(1);
+
+                        // Remap CSV headers to match JavaScript object keys
+                        const headerMap = {
+                            'vendorName': 'vendorName',
+                            'trainerName': 'trainerName',
+                            'trainingName': 'trainingName',
+                            'revenueModel': 'pricingModel',
+                            'noofParticipants': 'numParticipants',
+                            'totalHours': 'totalHours',
+                            'priceperParticipant': 'pricePerParticipant',
+                            'priceperHour': 'pricePerHour',
+                            'priceperDay': 'pricePerDay',
+                            'calculatedClientBudget': 'clientBudget',
+                            'trainerExpenseModel': 'expensePricingModel',
+                            'trainerExpensePerParticipant': 'trainerExpensePerParticipant',
+                            'trainerExpensePerhour': 'trainerExpensePerHour',
+                            'trainerExpensePerDay': 'trainerExpensePerDay',
+                            'totalTrainerExpense': 'trainerExpense',
+                            'labsCostPerDay': 'labsCostPerDay',
+                            'totalLabsCost': 'labsCost',
+                            'trainerTravelCost': 'trainerTravelCost',
+                            'trainerAccommodationCostPerDay': 'trainerAccommodationCostPerDay', // New mapping
+                            'totalTrainerAccommodationCost': 'totalTrainerAccommodationCost', // New mapping
+                            'coursewareCost': 'coursewareCost',
+                            'grossProfit': 'grossProfit',
+                            'profitMargin': 'profitMargin',
+                            'timestamp': 'timestamp',
+                        };
+                        formattedKey = headerMap[formattedKey] || formattedKey;
+
+
+                        // Attempt to convert numeric fields
+                        if (['numParticipants', 'totalHours', 'pricePerParticipant', 'pricePerHour', 'pricePerDay',
+                             'clientBudget', 'trainerExpensePerParticipant', 'trainerExpensePerHour', 'trainerExpensePerDay', 'trainerExpense',
+                             'labsCostPerDay', 'labsCost', 'trainerTravelCost', 'trainerAccommodationCostPerDay', 'totalTrainerAccommodationCost', 'coursewareCost', 'grossProfit', 'profitMargin'].includes(formattedKey)) {
+                            record[formattedKey] = parseFloat(value) || 0;
+                        } else {
+                            record[formattedKey] = value;
+                        }
+                    });
+                    records.push(record);
+                }
+                return records;
+            }
+
+            // Initial load of records and update pricing inputs when the page loads
+            loadRecords();
+            updatePricingInputs(); // Set initial state of revenue pricing inputs
+        });
+    </script>
+
+</body>
+</html>
